@@ -7,7 +7,7 @@
 //
 
 #import "GameScene.h"
-#import "MenuScene.h"
+#import "ScoreScene.h"
 
 // Collision masks
 static uint32_t const kDumborCategory    = 0x1 << 0;
@@ -16,28 +16,26 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 
 @interface GameScene ()
 
-@property (nonatomic) SKSpriteNode  *dumbor;
-@property (nonatomic) SKSpriteNode  *lastPipe;
-@property (nonatomic) SKSpriteNode  *lastPipeScored;
-@property (nonatomic) SKLabelNode   *scoreLabel;
-@property (nonatomic) NSArray       *pipes;
-@property (nonatomic) SKAction      *flapflap;
-@property (nonatomic) SKAction      *flapflapflap;
-@property (nonatomic) SKAction      *blopSound;
-@property (nonatomic) SKAction      *wooshSound;
-@property (nonatomic) SKAction      *clangSound;
+@property (nonatomic) SKSpriteNode      *dumbor;
+@property (nonatomic) SKSpriteNode      *lastPipe;
+@property (nonatomic) SKSpriteNode      *lastPipeScored;
+@property (nonatomic) SKLabelNode       *scoreLabel;
+@property (nonatomic) NSArray           *pipes;
+@property (nonatomic) SKAction          *flapflap;
+@property (nonatomic) SKAction          *flapflapflap;
+@property (nonatomic) SKAction          *blopSound;
+@property (nonatomic) SKAction          *wooshSound;
+@property (nonatomic) SKAction          *clangSound;
+@property (nonatomic) NSMutableArray    *scrollingItems;
+@property (nonatomic) ScoreScene        *scoreScene;
 
 @end
 
 @implementation GameScene
 {
     NSTimeInterval  _lastUpdateTime;
-    NSTimeInterval  _dt;
     
     BOOL            _gameOver;
-    BOOL            _isInHeaven;
-    float           _scrollingPPS;
-    float           _scrollingParallaxPPS;
     float           _pipeOffsetX;
     float           _pipeOffsetY;
     int             _impulse;
@@ -50,98 +48,53 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     {
         _score = 0;
         _gameOver = NO;
-        _scrollingPPS = 150.f;
-        _scrollingParallaxPPS = _scrollingPPS / 3.f;
-        _pipeOffsetX = 185.f;
+        _pipeOffsetX = 175.f;
         _pipeOffsetY = 110.f;
-        _impulse = 10.f;
-        
-        self.scoreLabel = [SKLabelNode labelNodeWithFontNamed:@"Optima-ExtraBlack"];
-        self.scoreLabel.position = CGPointMake(size.width / 2.f, size.height * 0.85f);
-        self.scoreLabel.text = @"0";
-        [self addChild:self.scoreLabel];
+        _impulse = 15.f;
         
         self.physicsWorld.contactDelegate = self;
-        self.physicsBody = [SKPhysicsBody bodyWithEdgeLoopFromRect:self.frame];
-        self.physicsWorld.gravity = CGVectorMake(0, -7);
+        self.physicsWorld.gravity = CGVectorMake(0, -8);
+
+        [self initScrollingBackground];
+        [self initPipes];
         
-        for (int i = 0; i < 3; ++i)
-        {
-            SKSpriteNode *background = [SKSpriteNode spriteNodeWithImageNamed:@"background"];
-            background.name = @"background";
-            background.anchorPoint = CGPointZero;
-            background.position = CGPointMake(i * size.width, 120.f);
-            background.size = CGSizeMake(size.width, size.height);
-            [self addChild:background];
-        }
+        // Score label
+        SKShapeNode *circle = [SKShapeNode node];
+        CGMutablePathRef myPath = CGPathCreateMutable();
+        CGPathAddArc(myPath, NULL, 0, 0, 25, 0, M_PI * 2, YES);
+        circle.path = myPath;
+        circle.fillColor = [SKColor colorWithRed:0 green:0 blue:0 alpha:0.75];
+        circle.position = CGPointMake(size.width * .5f, size.height * 0.85f);;
+        circle.zPosition = 1000;
+        [self addChild:circle];
+
+        self.scoreLabel = [SKLabelNode labelNodeWithFontNamed:@"04B03"];
+        self.scoreLabel.fontColor = [UIColor blackColor];
+        self.scoreLabel.position = CGPointMake(0, -10);
+        self.scoreLabel.fontSize = 28.f;
+        self.scoreLabel.fontColor = [UIColor whiteColor];
+        self.scoreLabel.text = @"0";
+        [circle addChild:self.scoreLabel];
         
+        // Dumbor
         self.dumbor = [SKSpriteNode spriteNodeWithImageNamed:@"babor_01"];
         self.dumbor.position = CGPointMake(size.width / 2.f, size.height * 0.85);
-        self.dumbor.size = CGSizeMake(40, 30);
+        self.dumbor.size = CGSizeMake(45, 35);
         self.dumbor.physicsBody = [SKPhysicsBody bodyWithCircleOfRadius:self.dumbor.frame.size.height / 2.f];
         self.dumbor.physicsBody.allowsRotation = NO;
         self.dumbor.physicsBody.affectedByGravity = YES;
         self.dumbor.physicsBody.categoryBitMask = kDumborCategory;
         self.dumbor.physicsBody.contactTestBitMask = kPipeCategory;
         self.dumbor.zPosition = 10000;
-        [self addChild:self.dumbor];
-        
-        
+
         NSArray *textures = @[[SKTexture textureWithImageNamed:@"babor_01"], [SKTexture textureWithImageNamed:@"babor_02"]];
         self.flapflap = [SKAction repeatActionForever:[SKAction animateWithTextures:textures timePerFrame:.20 / textures.count]];
         self.flapflapflap = [SKAction repeatActionForever:[SKAction animateWithTextures:textures timePerFrame:.15 / textures.count]];
         [self.dumbor runAction:self.flapflap withKey:@"flapflap"];
         
-        for (int i = 0; i < 3; ++i)
-        {
-            SKSpriteNode *ground = [[SKSpriteNode alloc] initWithImageNamed:@"ground"];
-            ground.anchorPoint = CGPointZero;
-            ground.position = CGPointMake((float)i * self.frame.size.width, 0.f);
-            ground.name = @"ground";
-            ground.size = CGSizeMake(self.frame.size.width, 120.f);
-            ground.zPosition = 100;
-            ground.physicsBody = [SKPhysicsBody bodyWithEdgeLoopFromRect:CGRectMake(0, 0, ground.size.width, ground.size.height)];
-            ground.physicsBody.categoryBitMask = kGroundCategory;
-            ground.physicsBody.friction = 10.f;
-            ground.physicsBody.contactTestBitMask = kDumborCategory;
-            [self addChild:ground];
-        }
-
-        NSMutableArray *pipes = [NSMutableArray arrayWithCapacity:4];
-        for (int i = 0; i < 5; ++i)
-        {
-            NSMutableArray *pair = [NSMutableArray arrayWithCapacity:2];
-            SKSpriteNode *bpipe = [[SKSpriteNode alloc] initWithImageNamed:@"green_pipe"];
-            bpipe.name = @"pipe";
-            bpipe.zPosition = 10;
-            bpipe.size = CGSizeMake(60.f, 275.f);
-            bpipe.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:bpipe.frame.size];
-            bpipe.physicsBody.categoryBitMask = kPipeCategory;
-            bpipe.physicsBody.contactTestBitMask = kDumborCategory;
-            bpipe.physicsBody.dynamic = NO;
-            [self addChild:bpipe];
-            pair[0] = bpipe;
-            
-            SKSpriteNode *tpipe = [[SKSpriteNode alloc] initWithImageNamed:@"green_pipe"];
-            tpipe.name = @"pipe";
-            tpipe.zPosition = 10;
-            tpipe.size = CGSizeMake(60.f, 275.f);
-            tpipe.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:tpipe.frame.size];
-            tpipe.physicsBody.dynamic = NO;
-            tpipe.yScale = -1.0;
-            tpipe.physicsBody.categoryBitMask = kPipeCategory;
-            tpipe.physicsBody.contactTestBitMask = kDumborCategory;
-            [self addChild:tpipe];
-            pair[1] = tpipe;
-            
-            [self generatePipesPosition:pair];
-            
-            pipes[i] = pair;
-            self.lastPipe = tpipe;
-        }
-        self.pipes = [NSArray arrayWithArray:pipes];
-        self.lastPipeScored = nil;
+        [self addChild:self.dumbor];
         
+        // Sounds
         self.blopSound = [SKAction playSoundFileNamed:@"blop.mp3" waitForCompletion:NO];
         self.wooshSound = [SKAction playSoundFileNamed:@"woosh.mp3" waitForCompletion:NO];
         self.clangSound = [SKAction playSoundFileNamed:@"clang.mp3" waitForCompletion:NO];
@@ -149,64 +102,98 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     return self;
 }
 
-- (void)gameOver
+- (void)initScrollingBackground
 {
-    _gameOver = YES;
-
-    [self enumerateChildNodesWithName:@"ground" usingBlock:^(SKNode *node, BOOL *stop) {
-        node.physicsBody = nil;
-    }];
+    // Create static sky node
+    SKSpriteNode *sky = [SKSpriteNode spriteNodeWithImageNamed:@"sky"];
+    sky.position = CGPointMake(self.frame.size.width / 2.f, self.frame.size.height / 2.f);
+    sky.size = CGSizeMake(self.frame.size.width, self.frame.size.height);
+    [self addChild:sky];
     
-    self.physicsBody = nil;
+    // Create scrolling items
+    self.scrollingItems = [NSMutableArray arrayWithCapacity:3];
     
-    [self.dumbor.physicsBody applyImpulse:CGVectorMake(-3, 8)];
-    [self.dumbor runAction:[SKAction rotateByAngle:M_PI duration:0.25f]];
-    [self.dumbor runAction:self.flapflapflap withKey:@"flapflapflap"];
+    // Create clouds nodes
+    for (int i = 0; i < 3; ++i)
+    {
+        SKSpriteNode *clouds = [SKSpriteNode spriteNodeWithImageNamed:@"clouds"];
+        clouds.anchorPoint = CGPointZero;
+        clouds.position = CGPointMake((float)i * self.frame.size.width, 120.f);
+        clouds.name = @"clouds";
+        clouds.size = CGSizeMake(self.frame.size.width, 100.f);
+        clouds.zPosition = 10;
+        [self addChild:clouds];
+    }
+    
+    // Create trees nodes
+    for (int i = 0; i < 3; ++i)
+    {
+        SKSpriteNode *trees = [SKSpriteNode spriteNodeWithImageNamed:@"trees"];
+        trees.anchorPoint = CGPointZero;
+        trees.position = CGPointMake((float)i * self.frame.size.width, 119.f);
+        trees.name = @"trees";
+        trees.size = CGSizeMake(self.frame.size.width + 1.f, 35.f);
+        trees.zPosition = 11;
+        [self addChild:trees];
+    }
+    
+    // Create ground nodes
+    for (int i = 0; i < 3; ++i)
+    {
+        SKSpriteNode *ground = [SKSpriteNode spriteNodeWithImageNamed:@"ground"];
+        ground.anchorPoint = CGPointZero;
+        ground.position = CGPointMake((float)i * self.frame.size.width, 0.f);
+        ground.name = @"ground";
+        ground.size = CGSizeMake(self.frame.size.width + 1.f, 120.f);
+        ground.zPosition = 22;
+        ground.physicsBody = [SKPhysicsBody bodyWithEdgeLoopFromRect:CGRectMake(0, 0, ground.size.width, ground.size.height)];
+        ground.physicsBody.categoryBitMask = kGroundCategory;
+        ground.physicsBody.contactTestBitMask = kDumborCategory;
+        [self addChild:ground];
+    }
+    
+    [self.scrollingItems addObject:@{ @"name" : @"clouds", @"pps" : @25.f}];
+    [self.scrollingItems addObject:@{ @"name" : @"trees", @"pps" : @50.f}];
+    [self.scrollingItems addObject:@{ @"name" : @"ground", @"pps" : @130.f}];
 }
 
-- (void)goToHeaven
+- (void)initPipes
 {
-    SKSpriteNode *deadDumbor = [SKSpriteNode spriteNodeWithImageNamed:@"white_babor_01"];
-    deadDumbor.position = CGPointMake(self.frame.size.width / 2.f, self.frame.size.height * 1.5f);
-    deadDumbor.size = CGSizeMake(40, 30);
-    deadDumbor.zPosition = 10000;
-    [self addChild:deadDumbor];
-    
-    NSArray *textures = @[[SKTexture textureWithImageNamed:@"white_babor_01"], [SKTexture textureWithImageNamed:@"white_babor_02"]];
-    SKAction *flapflap = [SKAction repeatActionForever:[SKAction animateWithTextures:textures timePerFrame:.40 / textures.count]];
-    [deadDumbor runAction:flapflap];
-    [deadDumbor runAction:[SKAction moveToY:self.frame.size.height * 0.90f duration:1.f]];
-    
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"magic-effect" ofType:@"sks"];
-    SKEmitterNode *magicEffect = [NSKeyedUnarchiver unarchiveObjectWithFile:path];
-    magicEffect.position = CGPointMake(deadDumbor.size.width / 2.f, -85.f);
-    [deadDumbor addChild:magicEffect];
-    
-    SKSpriteNode *board = [SKSpriteNode spriteNodeWithImageNamed:@"score-frame"];
-    board.position = CGPointMake(self.frame.size.width / 2.f, self.frame.size.height * 0.5 * 2);
-    board.size = CGSizeMake(self.frame.size.width * 0.75f, self.frame.size.width * 0.45f);
-    board.zPosition = 100000;
-    [self addChild:board];
-    
-    SKSpriteNode *shareButton = [SKSpriteNode spriteNodeWithImageNamed:@"share-button-pressed"];
-    shareButton.zPosition = 100000;
-    shareButton.anchorPoint = CGPointZero;
-    shareButton.position = CGPointMake(self.frame.size.width * 0.85f - 100.f, self.frame.size.height * 0.5 * 2);
-    shareButton.size = CGSizeMake(100.f, 50.f);
-    shareButton.name = @"share-button";
-    [self addChild:shareButton];
-    
-    SKSpriteNode *okButton = [SKSpriteNode spriteNodeWithImageNamed:@"ok-button-pressed"];
-    okButton.zPosition = 100000;
-    okButton.anchorPoint = CGPointZero;
-    okButton.position = CGPointMake(self.frame.size.width * 0.15f, self.frame.size.height * 0.5 * 2);
-    okButton.size = CGSizeMake(100.f, 50.f);
-    okButton.name = @"ok-button";
-    [self addChild:okButton];
-    
-    [board runAction:[SKAction moveToY:self.frame.size.height * 0.5 duration:1.f]];
-    [shareButton runAction:[SKAction moveToY:self.frame.size.height * 0.25 duration:1.f]];
-    [okButton runAction:[SKAction moveToY:self.frame.size.height * 0.25 duration:1.f]];
+    NSMutableArray *pipes = [NSMutableArray arrayWithCapacity:4];
+    for (int i = 0; i < 5; ++i)
+    {
+        SKSpriteNode *bpipe = [SKSpriteNode spriteNodeWithImageNamed:@"bot-book"];
+        bpipe.name = @"pipe";
+        bpipe.zPosition = 20;
+        bpipe.size = CGSizeMake(60.f, 275.f);
+        bpipe.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:bpipe.frame.size];
+        bpipe.physicsBody.categoryBitMask = kPipeCategory;
+        bpipe.physicsBody.contactTestBitMask = kDumborCategory;
+        bpipe.physicsBody.dynamic = NO;
+        [self addChild:bpipe];
+        
+        SKSpriteNode *tpipe = [SKSpriteNode spriteNodeWithImageNamed:@"top-book"];
+        tpipe.name = @"pipe";
+        tpipe.zPosition = 20;
+        tpipe.size = CGSizeMake(60.f, 275.f);
+        tpipe.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:tpipe.frame.size];
+        tpipe.physicsBody.dynamic = NO;
+        tpipe.physicsBody.categoryBitMask = kPipeCategory;
+        tpipe.physicsBody.contactTestBitMask = kDumborCategory;
+        [self addChild:tpipe];
+        
+        SKSpriteNode *dirt = [SKSpriteNode spriteNodeWithImageNamed:@"dirt"];
+        dirt.name = @"dirt";
+        dirt.zPosition = 30.f;
+        dirt.size = CGSizeMake(100.f, 20.f);
+        [bpipe addChild:dirt];
+
+        pipes[i] = [NSMutableArray arrayWithArray:@[bpipe, tpipe]];
+        [self generatePipesPosition:pipes[i]];
+        self.lastPipe = tpipe;
+    }
+    self.pipes = [NSArray arrayWithArray:pipes];
+    self.lastPipeScored = nil;
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -224,20 +211,16 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    UITouch *touch = [touches anyObject];
-    CGPoint location = [touch locationInNode:self];
-    SKNode *node = [self nodeAtPoint:location];
-
     if (_gameOver)
     {
-        if ([node.name isEqualToString:@"ok-button"])
+        UITouch *touch = [touches anyObject];
+        CGPoint location = [touch locationInNode:self];
+        SKNode *node = [self nodeAtPoint:location];
+
+        if ([node.name isEqualToString:@"retry-button"])
         {
-            SKScene *menuScene = [MenuScene sceneWithSize:self.frame.size];
-            [self.view presentScene:menuScene];
-        }
-        
-        if ([node.name isEqualToString:@"share-button"])
-        {
+            SKScene *gameScene = [GameScene sceneWithSize:self.frame.size];
+            [self.view presentScene:gameScene];
         }
     }
 }
@@ -246,20 +229,20 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 {
     if (_gameOver == NO)
     {
+        NSTimeInterval dt = 0.f;
+
         if (_lastUpdateTime)
-            _dt = currentTime - _lastUpdateTime;
-        else
-            _dt = 0.f;
+            dt = currentTime - _lastUpdateTime;
         
-        [self moveBackground];
-        [self moveGround];
-        [self movePipes];
+        [self animateDumbor:dt];
+        [self moveScrollingItems:dt];
+        [self movePipes:dt];
         
         for (NSArray *pair in self.pipes)
         {
             int x = self.dumbor.position.x;
             SKSpriteNode *pipe = (SKSpriteNode *)pair[0];
-            if (pipe != self.lastPipeScored && pipe.position.x - 5.f < x && x < pipe.position.x + 5.f)
+            if (pipe != self.lastPipeScored && pipe.position.x - 10.f < x && x < pipe.position.x + 5.f)
             {
                 _score += 1;
                 self.scoreLabel.text = [NSString stringWithFormat:@"%d", _score];
@@ -271,50 +254,63 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         
         _lastUpdateTime = currentTime;
     }
-    else if (_isInHeaven == NO)
+    else
     {
-        if (self.dumbor.position.y < 0)
+        if (self.dumbor.position.x <= 0)
         {
-            [self goToHeaven];
-            _isInHeaven = YES;
+            [self.view presentScene:self.scoreScene];
         }
     }
 }
 
-- (void)moveBackground
+- (void)moveScrollingItems:(NSTimeInterval)dt
 {
-    [self enumerateChildNodesWithName:@"background" usingBlock:^(SKNode *node, BOOL *stop) {
-        SKSpriteNode *background = (SKSpriteNode *)node;
-        CGPoint backgroundVelocity = CGPointMake(-_scrollingParallaxPPS, 0.f);
-        CGPoint amountToMove = CGPointMake(backgroundVelocity.x * _dt, backgroundVelocity.y * _dt);
-        background.position = CGPointMake(background.position.x + amountToMove.x, background.position.y + amountToMove.y);
-        if (background.position.x <= -background.size.width)
-        {
-            background.position = CGPointMake(self.frame.size.width, background.position.y);
-        }
-    }];
+    for (NSDictionary *item in self.scrollingItems)
+    {
+        __block SKSpriteNode *firstNode = nil;
+        __block SKSpriteNode *lastNode = nil;
+        
+        [self enumerateChildNodesWithName:item[@"name"] usingBlock:^(SKNode *node, BOOL *stop) {
+            SKSpriteNode *sprite = (SKSpriteNode *)node;
+            NSNumber *pps = item[@"pps"];
+            
+            CGPoint velocity = CGPointMake(-pps.floatValue, 0.f);
+            CGPoint amountToMove = CGPointMake(velocity.x * dt, velocity.y * dt);
+            
+            if (lastNode == nil || sprite.position.x > lastNode.position.x)
+                lastNode = sprite;
+            if (sprite.position.x <= -sprite.size.width)
+                firstNode = sprite;
+            sprite.position = CGPointMake(sprite.position.x + amountToMove.x, sprite.position.y + amountToMove.y);
+        }];
+        firstNode.position = CGPointMake(lastNode.position.x + lastNode.frame.size.width - 2.f, firstNode.position.y);
+    }
 }
 
-- (void)moveGround
+- (void)animateDumbor:(NSTimeInterval)dt
 {
-    [self enumerateChildNodesWithName:@"ground" usingBlock:^(SKNode *node, BOOL *stop) {
-        SKSpriteNode *ground = (SKSpriteNode *)node;
-        CGPoint groundVelocity = CGPointMake(-_scrollingPPS, 0.f);
-        CGPoint amountToMove = CGPointMake(groundVelocity.x * _dt, groundVelocity.y * _dt);
-        ground.position = CGPointMake(ground.position.x + amountToMove.x, ground.position.y + amountToMove.y);
-        if (ground.position.x <= -ground.size.width)
-        {
-            ground.position = CGPointMake(self.frame.size.width, ground.position.y);
-        }
-    }];
+    static float    lastY = 0;
+    static BOOL     isGoingUp = YES;
+    
+    if (self.dumbor.position.y < lastY - 10.f && (isGoingUp || lastY == 0))
+    {
+        isGoingUp = NO;
+        [self.dumbor runAction:[SKAction rotateToAngle:-M_PI / 6.f duration:.25f]];
+    }
+    if (self.dumbor.position.y >= lastY && (!isGoingUp || lastY == 0))
+    {
+        isGoingUp = YES;
+        [self.dumbor runAction:[SKAction rotateToAngle:M_PI / 6.f duration:.25f]];
+    }
+    lastY = self.dumbor.position.y;
 }
 
-- (void)movePipes
+- (void)movePipes:(NSTimeInterval)dt
 {
     [self enumerateChildNodesWithName:@"pipe" usingBlock:^(SKNode *node, BOOL *stop) {
         SKSpriteNode *pipe = (SKSpriteNode *)node;
-        CGPoint groundVelocity = CGPointMake(-_scrollingPPS, 0.f);
-        CGPoint amountToMove = CGPointMake(groundVelocity.x * _dt, groundVelocity.y * _dt);
+        CGPoint groundVelocity = CGPointMake(-130.f, 0.f);
+        CGPoint amountToMove = CGPointMake(groundVelocity.x * dt, groundVelocity.y * dt);
         pipe.position = CGPointMake(pipe.position.x + amountToMove.x, pipe.position.y);
     }];
 
@@ -332,10 +328,13 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 {
     SKSpriteNode    *bpipe = (SKSpriteNode *)pair[0];
     SKSpriteNode    *tpipe = (SKSpriteNode *)pair[1];
-    int             pipeY = arc4random() % 120 + 75;
+    int             pipeY = arc4random() % 195 + 45;
     float           last_pipe_x = self.lastPipe == nil ? self.frame.size.width * 1.5 : self.lastPipe.position.x;
     
     bpipe.position = CGPointMake(last_pipe_x + _pipeOffsetX, pipeY);
+    [bpipe enumerateChildNodesWithName:@"dirt" usingBlock:^(SKNode *node, BOOL *stop) {
+        node.position = CGPointMake(0.f, 120.f - pipeY);
+    }];
     tpipe.position = CGPointMake(last_pipe_x + _pipeOffsetX, pipeY + tpipe.size.height + _pipeOffsetY);
     self.lastPipe = bpipe;
 }
@@ -343,7 +342,36 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 - (void)didBeginContact:(SKPhysicsContact *)contact
 {
     [self runAction:self.clangSound];
-    [self gameOver];
+    if (_gameOver == NO)
+        [self gameOver];
+}
+
+- (void)gameOver
+{
+    _gameOver = YES;
+    
+    NSNumber *highScore = [[NSUserDefaults standardUserDefaults] objectForKey:@"highscore"];
+    if (highScore.intValue < _score)
+    {
+        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInt:_score] forKey:@"highscore"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
+    
+    [self enumerateChildNodesWithName:@"ground" usingBlock:^(SKNode *node, BOOL *stop) {
+        node.physicsBody = nil;
+    }];
+    
+    [self enumerateChildNodesWithName:@"pipe" usingBlock:^(SKNode *node, BOOL *stop) {
+        node.physicsBody = nil;
+    }];
+    
+    
+    [self.dumbor.physicsBody applyImpulse:CGVectorMake(-4, 10)];
+    [self.dumbor runAction:[SKAction rotateByAngle:M_PI duration:0.25f]];
+    [self.dumbor runAction:self.flapflapflap withKey:@"flapflapflap"];
+    
+    self.scoreScene = [[ScoreScene alloc] initWithSize:self.frame.size score:_score];
+    self.scoreScene.scaleMode = SKSceneScaleModeAspectFill;
 }
 
 @end
