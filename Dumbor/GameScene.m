@@ -40,6 +40,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     float           _pipeOffsetY;
     int             _impulse;
     int             _score;
+    int             _scrollingPPS;
 }
 
 -(id)initWithSize:(CGSize)size
@@ -48,9 +49,10 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     {
         _score = 0;
         _gameOver = NO;
-        _pipeOffsetX = 175.f;
-        _pipeOffsetY = 110.f;
+        _pipeOffsetX = 180.f;
+        _pipeOffsetY = 113.f;
         _impulse = 15.f;
+        _scrollingPPS = 135.f;
         
         self.physicsWorld.contactDelegate = self;
         self.physicsWorld.gravity = CGVectorMake(0, -8);
@@ -78,7 +80,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         
         // Dumbor
         self.dumbor = [SKSpriteNode spriteNodeWithImageNamed:@"babor_01"];
-        self.dumbor.position = CGPointMake(size.width / 2.f, size.height * 0.85);
+        self.dumbor.position = CGPointMake(size.width / 3.f, size.height * 0.85);
         self.dumbor.size = CGSizeMake(45, 35);
         self.dumbor.physicsBody = [SKPhysicsBody bodyWithCircleOfRadius:self.dumbor.frame.size.height / 2.f];
         self.dumbor.physicsBody.allowsRotation = NO;
@@ -154,7 +156,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     
     [self.scrollingItems addObject:@{ @"name" : @"clouds", @"pps" : @25.f}];
     [self.scrollingItems addObject:@{ @"name" : @"trees", @"pps" : @50.f}];
-    [self.scrollingItems addObject:@{ @"name" : @"ground", @"pps" : @130.f}];
+    [self.scrollingItems addObject:@{ @"name" : @"ground", @"pps" : [NSNumber numberWithInt:_scrollingPPS]}];
 }
 
 - (void)initPipes
@@ -256,7 +258,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     }
     else
     {
-        if (self.dumbor.position.x <= 0)
+        if (self.dumbor.position.y <= 0)
         {
             [self.view presentScene:self.scoreScene];
         }
@@ -295,7 +297,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     if (self.dumbor.position.y < lastY - 10.f && (isGoingUp || lastY == 0))
     {
         isGoingUp = NO;
-        [self.dumbor runAction:[SKAction rotateToAngle:-M_PI / 6.f duration:.25f]];
+        [self.dumbor runAction:[SKAction rotateToAngle:-M_PI / 4.f duration:.25f]];
     }
     if (self.dumbor.position.y >= lastY && (!isGoingUp || lastY == 0))
     {
@@ -309,7 +311,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 {
     [self enumerateChildNodesWithName:@"pipe" usingBlock:^(SKNode *node, BOOL *stop) {
         SKSpriteNode *pipe = (SKSpriteNode *)node;
-        CGPoint groundVelocity = CGPointMake(-130.f, 0.f);
+        CGPoint groundVelocity = CGPointMake(-_scrollingPPS, 0.f);
         CGPoint amountToMove = CGPointMake(groundVelocity.x * dt, groundVelocity.y * dt);
         pipe.position = CGPointMake(pipe.position.x + amountToMove.x, pipe.position.y);
     }];
@@ -343,7 +345,9 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 {
     [self runAction:self.clangSound];
     if (_gameOver == NO)
+    {
         [self gameOver];
+    }
 }
 
 - (void)gameOver
