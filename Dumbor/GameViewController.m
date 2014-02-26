@@ -7,9 +7,22 @@
 //
 
 #import "GameViewController.h"
+#import "GameKitHelper.h"
 #import "MenuScene.h"
 
 @implementation GameViewController
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.bannerView.delegate = self;
+    self.bannerView.hidden = YES;
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(showAuthenticationViewController) name:PresentAuthenticationViewController object:nil];
+    [[GameKitHelper sharedGameKitHelper] authenticateLocalPlayer];
+}
 
 - (void)viewWillLayoutSubviews
 {
@@ -29,6 +42,27 @@
         // Present the scene.
         [skView presentScene:menuScene];
     }
+}
+
+- (void)showAuthenticationViewController
+{
+    GameKitHelper *gameKitHelper = [GameKitHelper sharedGameKitHelper];
+    [self presentViewController: gameKitHelper.authenticationViewController animated:YES completion:nil];
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)bannerViewDidLoadAd:(ADBannerView *)banner
+{
+    self.bannerView.hidden = NO;
+}
+
+- (void)bannerView:(ADBannerView *)banner didFailToReceiveAdWithError:(NSError *)error
+{
+    self.bannerView.hidden = YES;
 }
 
 - (BOOL)prefersStatusBarHidden

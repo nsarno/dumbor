@@ -8,64 +8,63 @@
 
 #import "ScoreScene.h"
 #import "MenuScene.h"
+#import <Social/Social.h>
 
 @interface ScoreScene ()
 
 @property (nonatomic) NSMutableArray    *scrollingItems;
 @property (nonatomic) SKSpriteNode      *okBtn;
-@property (nonatomic) SKSpriteNode      *shareBtn;
+@property (nonatomic) SKSpriteNode      *fbBtn;
+@property (nonatomic) SKSpriteNode      *twBtn;
 @property (nonatomic) MenuScene         *menuScene;
-
+@property (nonatomic) UIImage           *snapshot;
 @end
 
 @implementation ScoreScene
 {
-    NSTimeInterval _lastUpdateTime;
+    NSTimeInterval  _lastUpdateTime;
+    float           _groundPCT;
+    BOOL            _hasUnlockedNewHighScore;
+    int             _score;
 }
 
-- (id)initWithSize:(CGSize)size score:(int)score
+- (id)initWithSize:(CGSize)size score:(int)score snapshot:(UIImage *)snapshot
 {
     if (self = [super initWithSize:size])
     {
+        _groundPCT = 0.15;
+        _score = score;
+        
+        self.snapshot = snapshot;
+        
+        NSNumber *hs = [[NSUserDefaults standardUserDefaults] objectForKey:@"highscore"];
+        if (hs.intValue < _score)
+        {
+            _hasUnlockedNewHighScore = YES;
+            [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInt:_score] forKey:@"highscore"];
+            [[NSUserDefaults standardUserDefaults] synchronize];
+        }
+        else
+        {
+            _hasUnlockedNewHighScore = NO;
+        }
+
+        
         [self initScrollingBackground];
         
-        // Create title
-        SKSpriteNode *title = [SKSpriteNode spriteNodeWithImageNamed:@"logo"];
-        title.position = CGPointMake(size.width / 2.f, size.height * 0.60);
-        title.size = CGSizeMake(250.f, 120.f);
-        title.zPosition = 20;
-        [self addChild:title];
-        
-        SKSpriteNode *dumbor = [SKSpriteNode spriteNodeWithImageNamed:@"babor_02"];
-        dumbor.position = CGPointMake(size.width / 2.f, size.height * 0.70);
-        dumbor.size = CGSizeMake(dumbor.size.width * 0.75f, dumbor.size.height * 0.75f);
-        dumbor.zRotation = M_PI / 10.f;
-        dumbor.zPosition = 10.f;
-        [self addChild:dumbor];
-        
-        NSArray *textures = @[[SKTexture textureWithImageNamed:@"babor_01"], [SKTexture textureWithImageNamed:@"babor_02"]];
-        SKAction *flapflap = [SKAction repeatActionForever:[SKAction animateWithTextures:textures timePerFrame:.35 / textures.count]];
-        [dumbor runAction:flapflap];
-
-        SKAction *moveUp = [SKAction moveBy:CGVectorMake(0.f, 30.f) duration:0.75];
-        moveUp.timingMode = SKActionTimingEaseOut;
-        SKAction *moveDown = [SKAction moveBy:CGVectorMake(0.f, -30.f) duration:0.75];
-        moveDown.timingMode = SKActionTimingEaseOut;
-        SKAction *flightSequence = [SKAction sequence:@[moveUp, moveDown]];
-        [dumbor runAction:[SKAction repeatActionForever:flightSequence]];
         
         SKSpriteNode *highScore = [SKSpriteNode spriteNodeWithImageNamed:@"highscore"];
-        highScore.size = CGSizeMake(size.width / 2.f, highScore.size.height * size.width / 2.f / size.width);
-        highScore.position = CGPointMake(size.width / 3.f, size.height * 0.40f);
+        highScore.size = CGSizeMake(size.width / 2.5f, 35.f);
+        highScore.position = CGPointMake(size.width * 0.35f, size.height * 0.75f);
         [self addChild:highScore];
 
         // High Score label
         SKShapeNode *hscircle = [SKShapeNode node];
         CGMutablePathRef hsPath = CGPathCreateMutable();
-        CGPathAddArc(hsPath, NULL, 0, 0, 25, 0, M_PI * 2, YES);
+        CGPathAddArc(hsPath, NULL, 0, 0, 40, 0, M_PI * 2, YES);
         hscircle.path = hsPath;
         hscircle.fillColor = [SKColor colorWithRed:0 green:0 blue:0 alpha:0.75];
-        hscircle.position = CGPointMake(size.width * .75f, size.height * 0.40f);;
+        hscircle.position = CGPointMake(size.width * .70f, size.height * 0.75f);;
         hscircle.zPosition = 1000;
         [self addChild:hscircle];
         
@@ -79,18 +78,18 @@
         [hscircle addChild:hscoreLabel];
         
         SKSpriteNode *newScore = [SKSpriteNode spriteNodeWithImageNamed:@"newscore"];
-        newScore.size = CGSizeMake(size.width / 2.f, newScore.size.height * size.width / 2.f / size.width);
-        newScore.position = CGPointMake(size.width / 3.f, size.height * 0.30f);
+        newScore.size = CGSizeMake(size.width / 2.5f, 35.f);
+        newScore.position = CGPointMake(size.width * 0.35f, size.height * 0.55f);
         newScore.zPosition = 1000;
         [self addChild:newScore];
         
         // New Score label
         SKShapeNode *nscircle = [SKShapeNode node];
         CGMutablePathRef nsPath = CGPathCreateMutable();
-        CGPathAddArc(nsPath, NULL, 0, 0, 25, 0, M_PI * 2, YES);
+        CGPathAddArc(nsPath, NULL, 0, 0, 40, 0, M_PI * 2, YES);
         nscircle.path = nsPath;
         nscircle.fillColor = [SKColor colorWithRed:0 green:0 blue:0 alpha:0.75];
-        nscircle.position = CGPointMake(size.width * .75f, size.height * 0.30f);;
+        nscircle.position = CGPointMake(size.width * .70f, size.height * 0.55f);;
         nscircle.zPosition = 1000;
         [self addChild:nscircle];
         
@@ -101,7 +100,23 @@
         nscoreLabel.fontColor = [UIColor whiteColor];
         nscoreLabel.text = [NSString stringWithFormat:@"%d", score];
         [nscircle addChild:nscoreLabel];
-        
+
+        // FB btn
+        self.fbBtn = [SKSpriteNode spriteNodeWithImageNamed:@"fb-btn"];
+        self.fbBtn.size = CGSizeMake(80.f, 80.f);
+        self.fbBtn.position = CGPointMake(size.width * .3f, size.height * 0.35);
+        self.fbBtn.zPosition = 30;
+        self.fbBtn.name = @"fb-button";
+        [self addChild:self.fbBtn];
+
+        // TW btn
+        self.twBtn = [SKSpriteNode spriteNodeWithImageNamed:@"twitter-btn"];
+        self.twBtn.size = CGSizeMake(80.f, 80.f);
+        self.twBtn.position = CGPointMake(size.width * .7f, size.height * 0.35);
+        self.twBtn.zPosition = 30;
+        self.twBtn.name = @"tw-button";
+        [self addChild:self.twBtn];
+
         // OK btn
         self.okBtn = [SKSpriteNode spriteNodeWithImageNamed:@"ok-btn"];
         self.okBtn.size = CGSizeMake(100.f, 50.f);
@@ -132,7 +147,7 @@
     {
         SKSpriteNode *clouds = [SKSpriteNode spriteNodeWithImageNamed:@"clouds"];
         clouds.anchorPoint = CGPointZero;
-        clouds.position = CGPointMake((float)i * self.frame.size.width, 120.f);
+        clouds.position = CGPointMake((float)i * self.frame.size.width, self.frame.size.height * _groundPCT);
         clouds.name = @"clouds";
         clouds.size = CGSizeMake(self.frame.size.width, 100.f);
         clouds.zPosition = 10;
@@ -144,7 +159,7 @@
     {
         SKSpriteNode *trees = [SKSpriteNode spriteNodeWithImageNamed:@"trees"];
         trees.anchorPoint = CGPointZero;
-        trees.position = CGPointMake((float)i * self.frame.size.width, 119.f);
+        trees.position = CGPointMake((float)i * self.frame.size.width, self.frame.size.height * _groundPCT - 1.f);
         trees.name = @"trees";
         trees.size = CGSizeMake(self.frame.size.width + 1.f, 35.f);
         trees.zPosition = 11;
@@ -158,7 +173,7 @@
         ground.anchorPoint = CGPointZero;
         ground.position = CGPointMake((float)i * self.frame.size.width, 0.f);
         ground.name = @"ground";
-        ground.size = CGSizeMake(self.frame.size.width + 1.f, 120.f);
+        ground.size = CGSizeMake(self.frame.size.width + 1.f, self.frame.size.height * _groundPCT);
         ground.zPosition = 22;
         [self addChild:ground];
     }
@@ -178,17 +193,21 @@
     {
         [self.okBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"ok-btn-pressed"]]];
     }
-    else if ([node.name isEqualToString:@"share-button"])
+    else if ([node.name isEqualToString:@"fb-button"])
     {
-        [self.shareBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"share-btn-pressed"]]];
+        [self.fbBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"fb-btn-pressed"]]];
     }
-
+    else if ([node.name isEqualToString:@"tw-button"])
+    {
+        [self.twBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"twitter-btn-pressed"]]];
+    }
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     [self.okBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"ok-btn"]]];
-    [self.shareBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"share-btn"]]];
+    [self.fbBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"fb-btn"]]];
+    [self.twBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"twitter-btn"]]];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
@@ -202,11 +221,20 @@
         [self.okBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"ok-btn"]]];
         [self.view presentScene:self.menuScene];
     }
-    else if ([node.name isEqualToString:@"share-button"])
+    else if ([node.name isEqualToString:@"fb-button"])
     {
-        [self.shareBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"share-btn"]]];
+        [self.fbBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"fb-btn"]]];
+        SLComposeViewController *composeVC = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeFacebook];
+        [composeVC setInitialText:[NSString stringWithFormat:NSLocalizedString(@"SHARE_INITIAL_TEXT", nil), _score]];
+        [[[[[UIApplication sharedApplication] delegate] window] rootViewController] presentViewController:composeVC animated:YES completion:nil];
     }
-
+    else if ([node.name isEqualToString:@"tw-button"])
+    {
+        [self.twBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"twitter-btn"]]];
+        SLComposeViewController *composeVC = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
+        [composeVC setInitialText:[NSString stringWithFormat:NSLocalizedString(@"SHARE_INITIAL_TEXT", nil), _score]];
+        [[[[[UIApplication sharedApplication] delegate] window] rootViewController] presentViewController:composeVC animated:YES completion:nil];
+    }
 }
 
 - (void)update:(CFTimeInterval)currentTime

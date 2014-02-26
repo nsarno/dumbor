@@ -9,6 +9,7 @@
 #import "MenuScene.h"
 #import "GameScene.h"
 #import "ScoreScene.h"
+#import "GameKitHelper.h"
 
 @interface MenuScene ()
 
@@ -21,7 +22,8 @@
 
 @implementation MenuScene
 {
-    NSTimeInterval _lastUpdateTime;
+    NSTimeInterval  _lastUpdateTime;
+    float           _groundPCT;
 }
 
 - (id)initWithSize:(CGSize)size
@@ -30,6 +32,7 @@
     if (self)
     {
         _lastUpdateTime = 0;
+        _groundPCT = 0.15;
 
         [self initScrollingBackground];
 
@@ -62,7 +65,7 @@
         // Create start button
         self.startButton = [SKSpriteNode spriteNodeWithImageNamed:@"start-btn"];
         self.startButton.size = CGSizeMake(100.f, 50.f);
-        self.startButton.position = CGPointMake(size.width / 2.f, size.height * 0.40);
+        self.startButton.position = CGPointMake(size.width / 2.f, size.height * 0.30 + 60.f);
         self.startButton.name = @"start-button";
         self.startButton.zPosition = 20;
         [self addChild:self.startButton];
@@ -97,7 +100,7 @@
     {
         SKSpriteNode *clouds = [SKSpriteNode spriteNodeWithImageNamed:@"clouds"];
         clouds.anchorPoint = CGPointZero;
-        clouds.position = CGPointMake((float)i * self.frame.size.width, 120.f);
+        clouds.position = CGPointMake((float)i * self.frame.size.width, self.frame.size.height * _groundPCT);
         clouds.name = @"clouds";
         clouds.size = CGSizeMake(self.frame.size.width, 100.f);
         clouds.zPosition = 10;
@@ -109,7 +112,7 @@
     {
         SKSpriteNode *trees = [SKSpriteNode spriteNodeWithImageNamed:@"trees"];
         trees.anchorPoint = CGPointZero;
-        trees.position = CGPointMake((float)i * self.frame.size.width, 119.f);
+        trees.position = CGPointMake((float)i * self.frame.size.width, self.frame.size.height * _groundPCT - 1.f);
         trees.name = @"trees";
         trees.size = CGSizeMake(self.frame.size.width + 1.f, 35.f);
         trees.zPosition = 11;
@@ -123,7 +126,7 @@
         ground.anchorPoint = CGPointZero;
         ground.position = CGPointMake((float)i * self.frame.size.width, 0.f);
         ground.name = @"ground";
-        ground.size = CGSizeMake(self.frame.size.width + 1.f, 120.f);
+        ground.size = CGSizeMake(self.frame.size.width + 1.f, self.frame.size.height * _groundPCT);
         ground.zPosition = 12;
         [self addChild:ground];
     }
@@ -169,9 +172,11 @@
     else if ([node.name isEqualToString:@"score-button"])
     {
         [self.scoreButton runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"score-btn"]]];
-        ScoreScene *scoreScene = [[ScoreScene alloc] initWithSize:self.frame.size score:0];
-        scoreScene.scaleMode = SKSceneScaleModeAspectFill;
-        [self.view presentScene:scoreScene];
+        UIViewController *vc = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+        [[GameKitHelper sharedGameKitHelper] showGKGameCenterViewController:vc];
+//        ScoreScene *scoreScene = [[ScoreScene alloc] initWithSize:self.frame.size score:0 snapshot:nil];
+//        scoreScene.scaleMode = SKSceneScaleModeAspectFill;
+//        [self.view presentScene:scoreScene];
     }
 
 }

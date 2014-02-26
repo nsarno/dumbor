@@ -10,6 +10,6 @@
 
 @interface ScoreScene : SKScene
 
-- (id)initWithSize:(CGSize)size score:(int)score;
+- (id)initWithSize:(CGSize)size score:(int)score snapshot:(UIImage *)snapshot;
 
 @end

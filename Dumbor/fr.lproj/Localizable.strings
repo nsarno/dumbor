@@ -1,0 +1,9 @@
+/* 
+  Localizable.strings
+  Dumbor
+
+  Created by Arnaud Mesureur on 26/02/14.
+  Copyright (c) 2014 Katana SX. All rights reserved.
+*/
+
+"SHARE_INITIAL_TEXT" = "Je n'ai fait que %d points à #FapFapBabor, mais je pense que tu n'oseras pas battre mon score. Loser.";

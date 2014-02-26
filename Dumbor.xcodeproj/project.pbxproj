@@ -11,6 +11,12 @@
 		11085E3818AD34A100954630 /* white_babor_01.png in Resources */ = {isa = PBXBuildFile; fileRef = 11085E3218AD34A100954630 /* white_babor_01.png */; };
 		11085E3918AD34A100954630 /* babor_01.png in Resources */ = {isa = PBXBuildFile; fileRef = 11085E3318AD34A100954630 /* babor_01.png */; };
 		11085E3A18AD34A100954630 /* babor_02.png in Resources */ = {isa = PBXBuildFile; fileRef = 11085E3418AD34A100954630 /* babor_02.png */; };
+		11569B1518BE98A0007A35EB /* GameKitHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 11569B1418BE98A0007A35EB /* GameKitHelper.m */; };
+		11601D1618BDFBA800761CC1 /* fb-btn.png in Resources */ = {isa = PBXBuildFile; fileRef = 11601D1218BDFBA800761CC1 /* fb-btn.png */; };
+		11601D1718BDFBA800761CC1 /* fb-btn-pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 11601D1318BDFBA800761CC1 /* fb-btn-pressed.png */; };
+		11601D1818BDFBA800761CC1 /* twitter-btn.png in Resources */ = {isa = PBXBuildFile; fileRef = 11601D1418BDFBA800761CC1 /* twitter-btn.png */; };
+		11601D1918BDFBA800761CC1 /* twitter-btn-pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 11601D1518BDFBA800761CC1 /* twitter-btn-pressed.png */; };
+		11601D1B18BDFEE600761CC1 /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11601D1A18BDFEE600761CC1 /* Social.framework */; };
 		1193247118B40C5300B485A2 /* blop.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1193246F18B40C5300B485A2 /* blop.mp3 */; };
 		1193247218B40C5300B485A2 /* woosh.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1193247018B40C5300B485A2 /* woosh.mp3 */; };
 		1193247C18B4B50100B485A2 /* clang.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1193247B18B4B50100B485A2 /* clang.mp3 */; };
@@ -40,6 +46,7 @@
 		11C5F8DE18B7381700B7477C /* ScoreScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 11C5F8DD18B7381700B7477C /* ScoreScene.m */; };
 		11C5F8E018B73BA300B7477C /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11C5F8DF18B73BA300B7477C /* GameKit.framework */; };
 		11C96A1218B35F5F00E2FE93 /* MenuScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 11C96A1118B35F5F00E2FE93 /* MenuScene.m */; };
+		11DA34BA18BE33330071F49A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 11DA34BC18BE33330071F49A /* Localizable.strings */; };
 		11ED176618B7A96400D36722 /* score-btn.png in Resources */ = {isa = PBXBuildFile; fileRef = 11ED176418B7A96400D36722 /* score-btn.png */; };
 		11ED176718B7A96400D36722 /* score-btn-pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 11ED176518B7A96400D36722 /* score-btn-pressed.png */; };
 		11ED176C18B7AC7100D36722 /* rate-btn.png in Resources */ = {isa = PBXBuildFile; fileRef = 11ED176818B7AC7100D36722 /* rate-btn.png */; };
@@ -55,6 +62,13 @@
 		11085E3218AD34A100954630 /* white_babor_01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = white_babor_01.png; sourceTree = "<group>"; };
 		11085E3318AD34A100954630 /* babor_01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = babor_01.png; sourceTree = "<group>"; };
 		11085E3418AD34A100954630 /* babor_02.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = babor_02.png; sourceTree = "<group>"; };
+		11569B1318BE98A0007A35EB /* GameKitHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameKitHelper.h; sourceTree = "<group>"; };
+		11569B1418BE98A0007A35EB /* GameKitHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameKitHelper.m; sourceTree = "<group>"; };
+		11601D1218BDFBA800761CC1 /* fb-btn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fb-btn.png"; sourceTree = "<group>"; };
+		11601D1318BDFBA800761CC1 /* fb-btn-pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fb-btn-pressed.png"; sourceTree = "<group>"; };
+		11601D1418BDFBA800761CC1 /* twitter-btn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "twitter-btn.png"; sourceTree = "<group>"; };
+		11601D1518BDFBA800761CC1 /* twitter-btn-pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "twitter-btn-pressed.png"; sourceTree = "<group>"; };
+		11601D1A18BDFEE600761CC1 /* Social.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Social.framework; path = System/Library/Frameworks/Social.framework; sourceTree = SDKROOT; };
 		1193246F18B40C5300B485A2 /* blop.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = blop.mp3; sourceTree = "<group>"; };
 		1193247018B40C5300B485A2 /* woosh.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = woosh.mp3; sourceTree = "<group>"; };
 		1193247B18B4B50100B485A2 /* clang.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = clang.mp3; sourceTree = "<group>"; };
@@ -93,6 +107,8 @@
 		11C5F8DF18B73BA300B7477C /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
 		11C96A1018B35F5F00E2FE93 /* MenuScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MenuScene.h; sourceTree = "<group>"; };
 		11C96A1118B35F5F00E2FE93 /* MenuScene.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MenuScene.m; sourceTree = "<group>"; };
+		11DA34BB18BE33330071F49A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		11DA34BD18BE334C0071F49A /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		11ED176418B7A96400D36722 /* score-btn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "score-btn.png"; sourceTree = "<group>"; };
 		11ED176518B7A96400D36722 /* score-btn-pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "score-btn-pressed.png"; sourceTree = "<group>"; };
 		11ED176818B7AC7100D36722 /* rate-btn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "rate-btn.png"; sourceTree = "<group>"; };
@@ -108,6 +124,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11601D1B18BDFEE600761CC1 /* Social.framework in Frameworks */,
 				11ED177518B7BEE500D36722 /* iAd.framework in Frameworks */,
 				11B3D6E118AB85B6006F5B7A /* CoreGraphics.framework in Frameworks */,
 				11B3D6E318AB85B6006F5B7A /* UIKit.framework in Frameworks */,
@@ -120,6 +137,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		11569B1218BE9882007A35EB /* GameKit */ = {
+			isa = PBXGroup;
+			children = (
+				11569B1318BE98A0007A35EB /* GameKitHelper.h */,
+				11569B1418BE98A0007A35EB /* GameKitHelper.m */,
+			);
+			name = GameKit;
+			sourceTree = "<group>";
+		};
 		11B2F96718B64EE40090AF41 /* Scenes */ = {
 			isa = PBXGroup;
 			children = (
@@ -136,6 +162,10 @@
 		11B2F96A18B670D10090AF41 /* menus */ = {
 			isa = PBXGroup;
 			children = (
+				11601D1218BDFBA800761CC1 /* fb-btn.png */,
+				11601D1318BDFBA800761CC1 /* fb-btn-pressed.png */,
+				11601D1418BDFBA800761CC1 /* twitter-btn.png */,
+				11601D1518BDFBA800761CC1 /* twitter-btn-pressed.png */,
 				11ED177018B7AE6A00D36722 /* highscore.png */,
 				11ED177118B7AE6A00D36722 /* newscore.png */,
 				11ED176818B7AC7100D36722 /* rate-btn.png */,
@@ -214,6 +244,7 @@
 		11B3D6DD18AB85B6006F5B7A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				11601D1A18BDFEE600761CC1 /* Social.framework */,
 				11ED177418B7BEE500D36722 /* iAd.framework */,
 				11C5F8DF18B73BA300B7477C /* GameKit.framework */,
 				11B3D6DE18AB85B6006F5B7A /* Foundation.framework */,
@@ -228,6 +259,7 @@
 		11B3D6E618AB85B6006F5B7A /* Dumbor */ = {
 			isa = PBXGroup;
 			children = (
+				11569B1218BE9882007A35EB /* GameKit */,
 				11B3D6EF18AB85B6006F5B7A /* AppDelegate.h */,
 				11B3D6F018AB85B6006F5B7A /* AppDelegate.m */,
 				11B3D6F818AB85B6006F5B7A /* GameViewController.h */,
@@ -248,6 +280,7 @@
 				11B3D6E918AB85B6006F5B7A /* InfoPlist.strings */,
 				11B3D6EC18AB85B6006F5B7A /* main.m */,
 				11B3D6EE18AB85B6006F5B7A /* Dumbor-Prefix.pch */,
+				11DA34BC18BE33330071F49A /* Localizable.strings */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -311,6 +344,7 @@
 			knownRegions = (
 				en,
 				Base,
+				fr,
 			);
 			mainGroup = 11B3D6D218AB85B6006F5B7A;
 			productRefGroup = 11B3D6DC18AB85B6006F5B7A /* Products */;
@@ -327,13 +361,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11601D1618BDFBA800761CC1 /* fb-btn.png in Resources */,
 				11B2F97718B6712B0090AF41 /* ground.png in Resources */,
 				1193247C18B4B50100B485A2 /* clang.mp3 in Resources */,
 				11B2F97B18B6712B0090AF41 /* bot-book.png in Resources */,
 				11B2F95F18B648BE0090AF41 /* ok-btn-pressed.png in Resources */,
 				11ED177218B7AE6A00D36722 /* highscore.png in Resources */,
+				11601D1818BDFBA800761CC1 /* twitter-btn.png in Resources */,
 				11B2F97818B6712B0090AF41 /* trees.png in Resources */,
 				11ED176618B7A96400D36722 /* score-btn.png in Resources */,
+				11601D1918BDFBA800761CC1 /* twitter-btn-pressed.png in Resources */,
 				11085E3A18AD34A100954630 /* babor_02.png in Resources */,
 				11ED177318B7AE6A00D36722 /* newscore.png in Resources */,
 				11B2F97A18B6712B0090AF41 /* top-book.png in Resources */,
@@ -341,6 +378,8 @@
 				11085E3818AD34A100954630 /* white_babor_01.png in Resources */,
 				11B2F97918B6712B0090AF41 /* dirt.png in Resources */,
 				11ED176718B7A96400D36722 /* score-btn-pressed.png in Resources */,
+				11DA34BA18BE33330071F49A /* Localizable.strings in Resources */,
+				11601D1718BDFBA800761CC1 /* fb-btn-pressed.png in Resources */,
 				11085E3918AD34A100954630 /* babor_01.png in Resources */,
 				11B2F96218B648C80090AF41 /* start-btn.png in Resources */,
 				11B2F96318B648C80090AF41 /* start-btn-pressed.png in Resources */,
@@ -369,6 +408,7 @@
 				11B3D6FD18AB85B6006F5B7A /* GameScene.m in Sources */,
 				11C96A1218B35F5F00E2FE93 /* MenuScene.m in Sources */,
 				11B3D6FA18AB85B6006F5B7A /* GameViewController.m in Sources */,
+				11569B1518BE98A0007A35EB /* GameKitHelper.m in Sources */,
 				11B3D6F118AB85B6006F5B7A /* AppDelegate.m in Sources */,
 				11C5F8DE18B7381700B7477C /* ScoreScene.m in Sources */,
 				11B3D6ED18AB85B6006F5B7A /* main.m in Sources */,
@@ -392,6 +432,15 @@
 				11B3D6F318AB85B6006F5B7A /* Base */,
 			);
 			name = Main_iPhone.storyboard;
+			sourceTree = "<group>";
+		};
+		11DA34BC18BE33330071F49A /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				11DA34BB18BE33330071F49A /* en */,
+				11DA34BD18BE334C0071F49A /* fr */,
+			);
+			name = Localizable.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

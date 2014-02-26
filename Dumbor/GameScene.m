@@ -8,6 +8,7 @@
 
 #import "GameScene.h"
 #import "ScoreScene.h"
+#import "GameKitHelper.h"
 
 // Collision masks
 static uint32_t const kDumborCategory    = 0x1 << 0;
@@ -28,6 +29,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 @property (nonatomic) SKAction          *clangSound;
 @property (nonatomic) NSMutableArray    *scrollingItems;
 @property (nonatomic) ScoreScene        *scoreScene;
+@property (nonatomic) SKShapeNode       *overlayNode;
 
 @end
 
@@ -36,6 +38,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     NSTimeInterval  _lastUpdateTime;
     
     BOOL            _gameOver;
+    float           _groundPCT;
     float           _pipeOffsetX;
     float           _pipeOffsetY;
     int             _impulse;
@@ -49,6 +52,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     {
         _score = 0;
         _gameOver = NO;
+        _groundPCT = 0.15;
         _pipeOffsetX = 180.f;
         _pipeOffsetY = 113.f;
         _impulse = 15.f;
@@ -63,10 +67,10 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         // Score label
         SKShapeNode *circle = [SKShapeNode node];
         CGMutablePathRef myPath = CGPathCreateMutable();
-        CGPathAddArc(myPath, NULL, 0, 0, 25, 0, M_PI * 2, YES);
+        CGPathAddArc(myPath, NULL, 0, 0, 30, 0, M_PI * 2, YES);
         circle.path = myPath;
         circle.fillColor = [SKColor colorWithRed:0 green:0 blue:0 alpha:0.75];
-        circle.position = CGPointMake(size.width * .5f, size.height * 0.85f);;
+        circle.position = CGPointMake(size.width * .5f, size.height - 50.f - 40.f);
         circle.zPosition = 1000;
         [self addChild:circle];
 
@@ -77,6 +81,15 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         self.scoreLabel.fontColor = [UIColor whiteColor];
         self.scoreLabel.text = @"0";
         [circle addChild:self.scoreLabel];
+        
+        // Overlay flashing node
+        self.overlayNode = [SKShapeNode node];
+        self.overlayNode.position = CGPointMake(0, 0);
+        self.overlayNode.zPosition = 9999;
+        self.overlayNode.path = [UIBezierPath bezierPathWithRect:self.frame].CGPath;
+        self.overlayNode.strokeColor = [SKColor colorWithWhite:1 alpha:0];
+        self.overlayNode.fillColor = [SKColor colorWithWhite:1 alpha:0];
+        [self addChild:self.overlayNode];
         
         // Dumbor
         self.dumbor = [SKSpriteNode spriteNodeWithImageNamed:@"babor_01"];
@@ -120,7 +133,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     {
         SKSpriteNode *clouds = [SKSpriteNode spriteNodeWithImageNamed:@"clouds"];
         clouds.anchorPoint = CGPointZero;
-        clouds.position = CGPointMake((float)i * self.frame.size.width, 120.f);
+        clouds.position = CGPointMake((float)i * self.frame.size.width, self.frame.size.height * _groundPCT);
         clouds.name = @"clouds";
         clouds.size = CGSizeMake(self.frame.size.width, 100.f);
         clouds.zPosition = 10;
@@ -132,7 +145,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     {
         SKSpriteNode *trees = [SKSpriteNode spriteNodeWithImageNamed:@"trees"];
         trees.anchorPoint = CGPointZero;
-        trees.position = CGPointMake((float)i * self.frame.size.width, 119.f);
+        trees.position = CGPointMake((float)i * self.frame.size.width, self.frame.size.height * _groundPCT - 1.f);
         trees.name = @"trees";
         trees.size = CGSizeMake(self.frame.size.width + 1.f, 35.f);
         trees.zPosition = 11;
@@ -146,7 +159,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         ground.anchorPoint = CGPointZero;
         ground.position = CGPointMake((float)i * self.frame.size.width, 0.f);
         ground.name = @"ground";
-        ground.size = CGSizeMake(self.frame.size.width + 1.f, 120.f);
+        ground.size = CGSizeMake(self.frame.size.width + 1.f, self.frame.size.height * _groundPCT);
         ground.zPosition = 22;
         ground.physicsBody = [SKPhysicsBody bodyWithEdgeLoopFromRect:CGRectMake(0, 0, ground.size.width, ground.size.height)];
         ground.physicsBody.categoryBitMask = kGroundCategory;
@@ -294,7 +307,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     static float    lastY = 0;
     static BOOL     isGoingUp = YES;
     
-    if (self.dumbor.position.y < lastY - 10.f && (isGoingUp || lastY == 0))
+    if (self.dumbor.position.y < lastY - 7.f && (isGoingUp || lastY == 0))
     {
         isGoingUp = NO;
         [self.dumbor runAction:[SKAction rotateToAngle:-M_PI / 4.f duration:.25f]];
@@ -330,12 +343,12 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 {
     SKSpriteNode    *bpipe = (SKSpriteNode *)pair[0];
     SKSpriteNode    *tpipe = (SKSpriteNode *)pair[1];
-    int             pipeY = arc4random() % 195 + 45;
+    int             pipeY = arc4random() % (int)(self.frame.size.height * _groundPCT * 1.75) + (self.frame.size.height * _groundPCT * 0.5);
     float           last_pipe_x = self.lastPipe == nil ? self.frame.size.width * 1.5 : self.lastPipe.position.x;
     
     bpipe.position = CGPointMake(last_pipe_x + _pipeOffsetX, pipeY);
     [bpipe enumerateChildNodesWithName:@"dirt" usingBlock:^(SKNode *node, BOOL *stop) {
-        node.position = CGPointMake(0.f, 120.f - pipeY);
+        node.position = CGPointMake(0.f, self.frame.size.height * _groundPCT - pipeY);
     }];
     tpipe.position = CGPointMake(last_pipe_x + _pipeOffsetX, pipeY + tpipe.size.height + _pipeOffsetY);
     self.lastPipe = bpipe;
@@ -344,6 +357,13 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 - (void)didBeginContact:(SKPhysicsContact *)contact
 {
     [self runAction:self.clangSound];
+    SKAction *alphaToWhite = [SKAction customActionWithDuration:.1f actionBlock:^(SKNode *node, CGFloat elapsedTime) {
+        self.overlayNode.fillColor = [SKColor colorWithWhite:.75f alpha:0.85];
+    }];
+    SKAction *whiteToAlpha = [SKAction customActionWithDuration:.1f actionBlock:^(SKNode *node, CGFloat elapsedTime) {
+        self.overlayNode.fillColor = [SKColor colorWithWhite:.75f alpha:0];
+    }];
+    [self .overlayNode runAction:[SKAction sequence:@[alphaToWhite, whiteToAlpha, alphaToWhite, whiteToAlpha, alphaToWhite, whiteToAlpha]]];
     if (_gameOver == NO)
     {
         [self gameOver];
@@ -354,13 +374,6 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 {
     _gameOver = YES;
     
-    NSNumber *highScore = [[NSUserDefaults standardUserDefaults] objectForKey:@"highscore"];
-    if (highScore.intValue < _score)
-    {
-        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInt:_score] forKey:@"highscore"];
-        [[NSUserDefaults standardUserDefaults] synchronize];
-    }
-    
     [self enumerateChildNodesWithName:@"ground" usingBlock:^(SKNode *node, BOOL *stop) {
         node.physicsBody = nil;
     }];
@@ -369,12 +382,13 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         node.physicsBody = nil;
     }];
     
-    
     [self.dumbor.physicsBody applyImpulse:CGVectorMake(-4, 10)];
     [self.dumbor runAction:[SKAction rotateByAngle:M_PI duration:0.25f]];
     [self.dumbor runAction:self.flapflapflap withKey:@"flapflapflap"];
     
-    self.scoreScene = [[ScoreScene alloc] initWithSize:self.frame.size score:_score];
+    [[GameKitHelper sharedGameKitHelper] reportScore:_score forLeaderboardID:@"sx.katana.Fap-Fap-Babor.highscores"];
+    
+    self.scoreScene = [[ScoreScene alloc] initWithSize:self.frame.size score:_score snapshot:nil];
     self.scoreScene.scaleMode = SKSceneScaleModeAspectFill;
 }
 

@@ -7,7 +7,10 @@
 
 #import <UIKit/UIKit.h>
 #import <SpriteKit/SpriteKit.h>
+#import <iAd/iAd.h>
 
-@interface GameViewController : UIViewController
+@interface GameViewController : UIViewController <ADBannerViewDelegate>
+
+@property (nonatomic) IBOutlet ADBannerView *bannerView;
 
 @end
