@@ -386,8 +386,6 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     [self.dumbor runAction:[SKAction rotateByAngle:M_PI duration:0.25f]];
     [self.dumbor runAction:self.flapflapflap withKey:@"flapflapflap"];
     
-    [[GameKitHelper sharedGameKitHelper] reportScore:_score forLeaderboardID:@"sx.katana.Fap-Fap-Babor.highscores"];
-    
     self.scoreScene = [[ScoreScene alloc] initWithSize:self.frame.size score:_score snapshot:nil];
     self.scoreScene.scaleMode = SKSceneScaleModeAspectFill;
 }

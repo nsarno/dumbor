@@ -8,6 +8,8 @@
 
 #import "ScoreScene.h"
 #import "MenuScene.h"
+#import "GameKitHelper.h"
+
 #import <Social/Social.h>
 
 @interface ScoreScene ()
@@ -43,6 +45,7 @@
             _hasUnlockedNewHighScore = YES;
             [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInt:_score] forKey:@"highscore"];
             [[NSUserDefaults standardUserDefaults] synchronize];
+            [[GameKitHelper sharedGameKitHelper] reportScore:_score forLeaderboardID:@"hs01"];
         }
         else
         {

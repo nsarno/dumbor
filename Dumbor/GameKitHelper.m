@@ -65,13 +65,11 @@ NSString *const PresentAuthenticationViewController = @"present_authentication_v
     {
         NSLog(@"Local play is not authenticated");
     }
-    NSLog(@"Report score");
     GKScore *scoreReporter = [[GKScore alloc] initWithLeaderboardIdentifier:leaderboardID];
     scoreReporter.value = score;
     scoreReporter.context = 0;
     NSArray *scores = @[scoreReporter];
     [GKScore reportScores:scores withCompletionHandler:^(NSError *error) {
-        NSLog(@"error %@", error.description);
         [self setLastError:error];
     }];
 }
