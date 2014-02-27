@@ -135,6 +135,12 @@
         self.quitBtn.zPosition = 30;
         self.quitBtn.name = @"quit-button";
         [self addChild:self.quitBtn];
+        
+        SKSpriteNode *twitterPicto = [SKSpriteNode spriteNodeWithImageNamed:@"twitter-at"];
+        twitterPicto.position = CGPointMake(size.width / 2.f, size.height * _groundPCT / 2.5f);
+        twitterPicto.zPosition = 1000;
+        twitterPicto.size = CGSizeMake(twitterPicto.size.width / 2.f, twitterPicto.size.height / 2.f);
+        [self addChild:twitterPicto];
     }
     return self;
 }

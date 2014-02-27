@@ -77,6 +77,12 @@
         self.scoreButton.name = @"score-button";
         self.scoreButton.zPosition = 20;
         [self addChild:self.scoreButton];
+     
+        SKSpriteNode *twitterPicto = [SKSpriteNode spriteNodeWithImageNamed:@"twitter-at"];
+        twitterPicto.position = CGPointMake(size.width / 2.f, size.height * _groundPCT / 2.5f);
+        twitterPicto.zPosition = 1000;
+        twitterPicto.size = CGSizeMake(twitterPicto.size.width / 2.f, twitterPicto.size.height / 2.f);
+        [self addChild:twitterPicto];
         
         self.gameScene = [GameScene sceneWithSize:size];
         self.gameScene.scaleMode = SKSceneScaleModeAspectFill;

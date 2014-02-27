@@ -110,6 +110,12 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         
         [self addChild:self.dumbor];
         
+        SKSpriteNode *twitterPicto = [SKSpriteNode spriteNodeWithImageNamed:@"twitter-at"];
+        twitterPicto.position = CGPointMake(size.width / 2.f, size.height * _groundPCT / 2.5f);
+        twitterPicto.zPosition = 1000;
+        twitterPicto.size = CGSizeMake(twitterPicto.size.width / 2.f, twitterPicto.size.height / 2.f);
+        [self addChild:twitterPicto];
+        
         // Sounds
         self.blopSound = [SKAction playSoundFileNamed:@"blop.mp3" waitForCompletion:NO];
         self.wooshSound = [SKAction playSoundFileNamed:@"woosh.mp3" waitForCompletion:NO];
