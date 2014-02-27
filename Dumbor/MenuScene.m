@@ -14,7 +14,7 @@
 @interface MenuScene ()
 
 @property (nonatomic) NSMutableArray    *scrollingItems;
-@property (nonatomic) SKSpriteNode      *startButton;
+@property (nonatomic) SKSpriteNode      *playButton;
 @property (nonatomic) SKSpriteNode      *scoreButton;
 @property (nonatomic) GameScene         *gameScene;
 
@@ -62,13 +62,13 @@
         title.zPosition = 20.f;
         [self addChild:title];
         
-        // Create start button
-        self.startButton = [SKSpriteNode spriteNodeWithImageNamed:@"start-btn"];
-        self.startButton.size = CGSizeMake(100.f, 50.f);
-        self.startButton.position = CGPointMake(size.width / 2.f, size.height * 0.30 + 60.f);
-        self.startButton.name = @"start-button";
-        self.startButton.zPosition = 20;
-        [self addChild:self.startButton];
+        // Create play button
+        self.playButton = [SKSpriteNode spriteNodeWithImageNamed:@"play-btn"];
+        self.playButton.size = CGSizeMake(100.f, 50.f);
+        self.playButton.position = CGPointMake(size.width / 2.f, size.height * 0.30 + 60.f);
+        self.playButton.name = @"play-button";
+        self.playButton.zPosition = 20;
+        [self addChild:self.playButton];
         
         // Create score button
         self.scoreButton = [SKSpriteNode spriteNodeWithImageNamed:@"score-btn"];
@@ -142,9 +142,9 @@
     CGPoint location = [touch locationInNode:self];
     SKNode *node = [self nodeAtPoint:location];
     
-    if ([node.name isEqualToString:@"start-button"])
+    if ([node.name isEqualToString:@"play-button"])
     {
-       [self.startButton runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"start-btn-pressed"]]];
+       [self.playButton runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"play-btn-pressed"]]];
     }
     else if ([node.name isEqualToString:@"score-button"])
     {
@@ -154,7 +154,7 @@
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self.startButton runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"start-btn"]]];
+    [self.playButton runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"play-btn"]]];
     [self.scoreButton runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"score-btn"]]];
 }
 
@@ -164,9 +164,9 @@
     CGPoint location = [touch locationInNode:self];
     SKNode *node = [self nodeAtPoint:location];
     
-    if ([node.name isEqualToString:@"start-button"])
+    if ([node.name isEqualToString:@"play-button"])
     {
-        [self.startButton runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"start-btn"]]];
+        [self.playButton runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"play-btn"]]];
         [self.view presentScene:self.gameScene];
     }
     else if ([node.name isEqualToString:@"score-button"])
@@ -174,9 +174,6 @@
         [self.scoreButton runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"score-btn"]]];
         UIViewController *vc = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
         [[GameKitHelper sharedGameKitHelper] showGKGameCenterViewController:vc];
-//        ScoreScene *scoreScene = [[ScoreScene alloc] initWithSize:self.frame.size score:0 snapshot:nil];
-//        scoreScene.scaleMode = SKSceneScaleModeAspectFill;
-//        [self.view presentScene:scoreScene];
     }
 
 }

@@ -8,6 +8,7 @@
 
 #import "ScoreScene.h"
 #import "MenuScene.h"
+#import "GameScene.h"
 #import "GameKitHelper.h"
 
 #import <Social/Social.h>
@@ -15,10 +16,10 @@
 @interface ScoreScene ()
 
 @property (nonatomic) NSMutableArray    *scrollingItems;
-@property (nonatomic) SKSpriteNode      *okBtn;
+@property (nonatomic) SKSpriteNode      *playBtn;
+@property (nonatomic) SKSpriteNode      *quitBtn;
 @property (nonatomic) SKSpriteNode      *fbBtn;
 @property (nonatomic) SKSpriteNode      *twBtn;
-@property (nonatomic) MenuScene         *menuScene;
 @property (nonatomic) UIImage           *snapshot;
 @end
 
@@ -55,46 +56,45 @@
         
         [self initScrollingBackground];
         
-        
-        SKSpriteNode *highScore = [SKSpriteNode spriteNodeWithImageNamed:@"highscore"];
-        highScore.size = CGSizeMake(size.width / 2.5f, 35.f);
-        highScore.position = CGPointMake(size.width * 0.35f, size.height * 0.75f);
-        [self addChild:highScore];
-
         // High Score label
         SKShapeNode *hscircle = [SKShapeNode node];
         CGMutablePathRef hsPath = CGPathCreateMutable();
-        CGPathAddArc(hsPath, NULL, 0, 0, 40, 0, M_PI * 2, YES);
+        CGPathAddArc(hsPath, NULL, 0, 0, 50, 0, M_PI * 2, YES);
         hscircle.path = hsPath;
         hscircle.fillColor = [SKColor colorWithRed:0 green:0 blue:0 alpha:0.75];
-        hscircle.position = CGPointMake(size.width * .70f, size.height * 0.75f);;
+        hscircle.position = CGPointMake(size.width * 0.5f, size.height * 0.75f);;
         hscircle.zPosition = 1000;
         [self addChild:hscircle];
+        
+        SKSpriteNode *highScore = [SKSpriteNode spriteNodeWithImageNamed:@"highscore"];
+        highScore.size = CGSizeMake(highScore.size.width * 0.65, highScore.size.height * 0.65);
+        highScore.position = CGPointMake(-40.f, -50.f);
+        [hscircle addChild:highScore];
         
         NSNumber *highScoreNumber = [[NSUserDefaults standardUserDefaults] objectForKey:@"highscore"];
         SKLabelNode *hscoreLabel = [SKLabelNode labelNodeWithFontNamed:@"04B03"];
         hscoreLabel.fontColor = [UIColor blackColor];
-        hscoreLabel.position = CGPointMake(0, -10);
+        hscoreLabel.position = CGPointMake(0.f, -10.f);
         hscoreLabel.fontSize = 28.f;
         hscoreLabel.fontColor = [UIColor whiteColor];
         hscoreLabel.text = highScoreNumber.stringValue;
         [hscircle addChild:hscoreLabel];
         
-        SKSpriteNode *newScore = [SKSpriteNode spriteNodeWithImageNamed:@"newscore"];
-        newScore.size = CGSizeMake(size.width / 2.5f, 35.f);
-        newScore.position = CGPointMake(size.width * 0.35f, size.height * 0.55f);
-        newScore.zPosition = 1000;
-        [self addChild:newScore];
-        
         // New Score label
         SKShapeNode *nscircle = [SKShapeNode node];
         CGMutablePathRef nsPath = CGPathCreateMutable();
-        CGPathAddArc(nsPath, NULL, 0, 0, 40, 0, M_PI * 2, YES);
+        CGPathAddArc(nsPath, NULL, 0, 0, 50, 0, M_PI * 2, YES);
         nscircle.path = nsPath;
         nscircle.fillColor = [SKColor colorWithRed:0 green:0 blue:0 alpha:0.75];
-        nscircle.position = CGPointMake(size.width * .70f, size.height * 0.55f);;
+        nscircle.position = CGPointMake(size.width * .5f, size.height * 0.5f);
         nscircle.zPosition = 1000;
         [self addChild:nscircle];
+        
+        SKSpriteNode *newScore = [SKSpriteNode spriteNodeWithImageNamed:@"newscore"];
+        newScore.size = CGSizeMake(newScore.size.width * 0.6, newScore.size.height * 0.6);
+        newScore.position = CGPointMake(0.f, -50.f);
+        newScore.zPosition = 1000;
+        [nscircle addChild:newScore];
         
         SKLabelNode *nscoreLabel = [SKLabelNode labelNodeWithFontNamed:@"04B03"];
         nscoreLabel.fontColor = [UIColor blackColor];
@@ -106,30 +106,35 @@
 
         // FB btn
         self.fbBtn = [SKSpriteNode spriteNodeWithImageNamed:@"fb-btn"];
-        self.fbBtn.size = CGSizeMake(80.f, 80.f);
-        self.fbBtn.position = CGPointMake(size.width * .3f, size.height * 0.35);
+        self.fbBtn.size = CGSizeMake(45.f, 45.f);
+        self.fbBtn.position = CGPointMake(65, -45);
         self.fbBtn.zPosition = 30;
         self.fbBtn.name = @"fb-button";
-        [self addChild:self.fbBtn];
+        [hscircle addChild:self.fbBtn];
 
         // TW btn
         self.twBtn = [SKSpriteNode spriteNodeWithImageNamed:@"twitter-btn"];
-        self.twBtn.size = CGSizeMake(80.f, 80.f);
-        self.twBtn.position = CGPointMake(size.width * .7f, size.height * 0.35);
+        self.twBtn.size = CGSizeMake(45.f, 45.f);
+        self.twBtn.position = CGPointMake(115, -45);
         self.twBtn.zPosition = 30;
         self.twBtn.name = @"tw-button";
-        [self addChild:self.twBtn];
+        [hscircle addChild:self.twBtn];
 
-        // OK btn
-        self.okBtn = [SKSpriteNode spriteNodeWithImageNamed:@"ok-btn"];
-        self.okBtn.size = CGSizeMake(100.f, 50.f);
-        self.okBtn.position = CGPointMake(size.width / 2.f, size.height * 0.15);
-        self.okBtn.zPosition = 30;
-        self.okBtn.name = @"ok-button";
-        [self addChild:self.okBtn];
-        
-        self.menuScene = [MenuScene sceneWithSize:size];
-        self.menuScene.scaleMode = SKSceneScaleModeAspectFill;
+        // quit btn
+        self.playBtn = [SKSpriteNode spriteNodeWithImageNamed:@"play-btn"];
+        self.playBtn.size = CGSizeMake(100.f, 50.f);
+        self.playBtn.position = CGPointMake(size.width * 0.30f, size.height * 0.25);
+        self.playBtn.zPosition = 30;
+        self.playBtn.name = @"play-button";
+        [self addChild:self.playBtn];
+
+        // quit btn
+        self.quitBtn = [SKSpriteNode spriteNodeWithImageNamed:@"quit-btn"];
+        self.quitBtn.size = CGSizeMake(100.f, 50.f);
+        self.quitBtn.position = CGPointMake(size.width * 0.70f, size.height * 0.25);
+        self.quitBtn.zPosition = 30;
+        self.quitBtn.name = @"quit-button";
+        [self addChild:self.quitBtn];
     }
     return self;
 }
@@ -191,10 +196,14 @@
     UITouch *touch = [touches anyObject];
     CGPoint location = [touch locationInNode:self];
     SKNode *node = [self nodeAtPoint:location];
-    
-    if ([node.name isEqualToString:@"ok-button"])
+
+    if ([node.name isEqualToString:@"play-button"])
     {
-        [self.okBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"ok-btn-pressed"]]];
+        [self.playBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"play-btn-pressed"]]];
+    }
+    else if ([node.name isEqualToString:@"quit-button"])
+    {
+        [self.quitBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"quit-btn-pressed"]]];
     }
     else if ([node.name isEqualToString:@"fb-button"])
     {
@@ -208,7 +217,8 @@
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self.okBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"ok-btn"]]];
+    [self.playBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"play-btn"]]];
+    [self.quitBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"quit-btn"]]];
     [self.fbBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"fb-btn"]]];
     [self.twBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"twitter-btn"]]];
 }
@@ -219,10 +229,19 @@
     CGPoint location = [touch locationInNode:self];
     SKNode *node = [self nodeAtPoint:location];
     
-    if ([node.name isEqualToString:@"ok-button"])
+    if ([node.name isEqualToString:@"play-button"])
     {
-        [self.okBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"ok-btn"]]];
-        [self.view presentScene:self.menuScene];
+        [self.playBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"play-btn"]]];
+        GameScene *gameScene = [GameScene sceneWithSize:self.frame.size];
+        gameScene.scaleMode = SKSceneScaleModeAspectFill;
+        [self.view presentScene:gameScene];
+    }
+    else if ([node.name isEqualToString:@"quit-button"])
+    {
+        [self.quitBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"quit-btn"]]];
+        MenuScene *menuScene = [MenuScene sceneWithSize:self.frame.size];
+        menuScene.scaleMode = SKSceneScaleModeAspectFill;
+        [self.view presentScene:menuScene];
     }
     else if ([node.name isEqualToString:@"fb-button"])
     {

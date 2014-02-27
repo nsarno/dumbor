@@ -53,13 +53,14 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         _score = 0;
         _gameOver = NO;
         _groundPCT = 0.15;
-        _pipeOffsetX = 180.f;
+        _pipeOffsetX = 175.f;
         _pipeOffsetY = 113.f;
-        _impulse = 15.f;
-        _scrollingPPS = 135.f;
+        _impulse = 16.f;
+        _scrollingPPS = 150.f;
         
         self.physicsWorld.contactDelegate = self;
         self.physicsWorld.gravity = CGVectorMake(0, -8);
+        self.physicsBody = [SKPhysicsBody bodyWithEdgeLoopFromPath:CGPathCreateWithRect(CGRectMake(0, 0, self.frame.size.width, self.frame.size.height + 50.f), NULL)];
 
         [self initScrollingBackground];
         [self initPipes];
@@ -70,7 +71,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         CGPathAddArc(myPath, NULL, 0, 0, 30, 0, M_PI * 2, YES);
         circle.path = myPath;
         circle.fillColor = [SKColor colorWithRed:0 green:0 blue:0 alpha:0.75];
-        circle.position = CGPointMake(size.width * .5f, size.height - 50.f - 40.f);
+        circle.position = CGPointMake(size.width * .5f, size.height - 50.f - 45.f);
         circle.zPosition = 1000;
         [self addChild:circle];
 
@@ -180,7 +181,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         SKSpriteNode *bpipe = [SKSpriteNode spriteNodeWithImageNamed:@"bot-book"];
         bpipe.name = @"pipe";
         bpipe.zPosition = 20;
-        bpipe.size = CGSizeMake(60.f, 275.f);
+        bpipe.size = CGSizeMake(65.f, 275.f);
         bpipe.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:bpipe.frame.size];
         bpipe.physicsBody.categoryBitMask = kPipeCategory;
         bpipe.physicsBody.contactTestBitMask = kDumborCategory;
@@ -190,7 +191,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         SKSpriteNode *tpipe = [SKSpriteNode spriteNodeWithImageNamed:@"top-book"];
         tpipe.name = @"pipe";
         tpipe.zPosition = 20;
-        tpipe.size = CGSizeMake(60.f, 275.f);
+        tpipe.size = CGSizeMake(65.f, 275.f);
         tpipe.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:tpipe.frame.size];
         tpipe.physicsBody.dynamic = NO;
         tpipe.physicsBody.categoryBitMask = kPipeCategory;
@@ -307,15 +308,18 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     static float    lastY = 0;
     static BOOL     isGoingUp = YES;
     
-    if (self.dumbor.position.y < lastY - 7.f && (isGoingUp || lastY == 0))
+    if (self.dumbor.position.y < lastY - 2.f && (isGoingUp || lastY == 0))
     {
         isGoingUp = NO;
-        [self.dumbor runAction:[SKAction rotateToAngle:-M_PI / 4.f duration:.25f]];
+        [self.dumbor removeActionForKey:@"rotateUp"];
+        [self.dumbor runAction:[SKAction rotateToAngle:-M_PI / 4.f duration:.5f] withKey:@"rotateDown"];
+        [self.dumbor.physicsBody applyImpulse:CGVectorMake(0, -3.f)];
     }
     if (self.dumbor.position.y >= lastY && (!isGoingUp || lastY == 0))
     {
         isGoingUp = YES;
-        [self.dumbor runAction:[SKAction rotateToAngle:M_PI / 6.f duration:.25f]];
+        [self.dumbor removeActionForKey:@"rotateDown"];
+        [self.dumbor runAction:[SKAction rotateToAngle:M_PI / 6.f duration:.25f] withKey:@"rotateUp"];
     }
     lastY = self.dumbor.position.y;
 }
@@ -373,6 +377,7 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 - (void)gameOver
 {
     _gameOver = YES;
+    self.physicsBody = nil;
     
     [self enumerateChildNodesWithName:@"ground" usingBlock:^(SKNode *node, BOOL *stop) {
         node.physicsBody = nil;
