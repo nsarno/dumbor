@@ -20,7 +20,9 @@
 @property (nonatomic) SKSpriteNode      *quitBtn;
 @property (nonatomic) SKSpriteNode      *fbBtn;
 @property (nonatomic) SKSpriteNode      *twBtn;
-@property (nonatomic) UIImage           *snapshot;
+@property (nonatomic) SKSpriteNode      *twitterPicto;
+@property (nonatomic) GameScene         *gameScene;
+
 @end
 
 @implementation ScoreScene
@@ -38,10 +40,8 @@
         _groundPCT = 0.15;
         _score = score;
         
-        self.snapshot = snapshot;
-        
         NSNumber *hs = [[NSUserDefaults standardUserDefaults] objectForKey:@"highscore"];
-        if (hs.intValue < _score)
+        if (hs.intValue <= _score)
         {
             _hasUnlockedNewHighScore = YES;
             [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInt:_score] forKey:@"highscore"];
@@ -58,9 +58,12 @@
         
         // High Score label
         SKShapeNode *hscircle = [SKShapeNode node];
+        
         CGMutablePathRef hsPath = CGPathCreateMutable();
         CGPathAddArc(hsPath, NULL, 0, 0, 50, 0, M_PI * 2, YES);
         hscircle.path = hsPath;
+        CGPathRelease(hsPath);
+        
         hscircle.fillColor = [SKColor colorWithRed:0 green:0 blue:0 alpha:0.75];
         hscircle.position = CGPointMake(size.width * 0.5f, size.height * 0.75f);;
         hscircle.zPosition = 1000;
@@ -82,9 +85,12 @@
         
         // New Score label
         SKShapeNode *nscircle = [SKShapeNode node];
+        
         CGMutablePathRef nsPath = CGPathCreateMutable();
         CGPathAddArc(nsPath, NULL, 0, 0, 50, 0, M_PI * 2, YES);
         nscircle.path = nsPath;
+        CGPathRelease(nsPath);
+        
         nscircle.fillColor = [SKColor colorWithRed:0 green:0 blue:0 alpha:0.75];
         nscircle.position = CGPointMake(size.width * .5f, size.height * 0.5f);
         nscircle.zPosition = 1000;
@@ -136,11 +142,15 @@
         self.quitBtn.name = @"quit-button";
         [self addChild:self.quitBtn];
         
-        SKSpriteNode *twitterPicto = [SKSpriteNode spriteNodeWithImageNamed:@"twitter-at"];
-        twitterPicto.position = CGPointMake(size.width / 2.f, size.height * _groundPCT / 2.5f);
-        twitterPicto.zPosition = 1000;
-        twitterPicto.size = CGSizeMake(twitterPicto.size.width / 2.f, twitterPicto.size.height / 2.f);
-        [self addChild:twitterPicto];
+        self.twitterPicto = [SKSpriteNode spriteNodeWithImageNamed:@"twitter-at"];
+        self.twitterPicto.name = @"twitter-picto";
+        self.twitterPicto.position = CGPointMake(size.width / 2.f, size.height * _groundPCT / 2.5f);
+        self.twitterPicto.zPosition = 1000;
+        self.twitterPicto.size = CGSizeMake(150.f, 40.f);
+        [self addChild:self.twitterPicto];
+        
+        self.gameScene = [GameScene sceneWithSize:self.frame.size];
+        self.gameScene.scaleMode = SKSceneScaleModeAspectFill;
     }
     return self;
 }
@@ -192,9 +202,9 @@
         [self addChild:ground];
     }
     
-    [self.scrollingItems addObject:@{ @"name" : @"clouds", @"pps" : @25.f}];
-    [self.scrollingItems addObject:@{ @"name" : @"trees", @"pps" : @50.f}];
-    [self.scrollingItems addObject:@{ @"name" : @"ground", @"pps" : @130.f}];
+    [self.scrollingItems addObject:@{ @"name" : @"clouds", @"pps" : @35.f}];
+    [self.scrollingItems addObject:@{ @"name" : @"trees", @"pps" : @75.f}];
+    [self.scrollingItems addObject:@{ @"name" : @"ground", @"pps" : @155.f}];
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -219,6 +229,10 @@
     {
         [self.twBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"twitter-btn-pressed"]]];
     }
+    else if ([node.name isEqualToString:@"twitter-picto"])
+    {
+        self.twitterPicto.size = CGSizeMake(self.twitterPicto.size.width * 1.25, self.twitterPicto.size.height * 1.25);
+    }
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
@@ -227,6 +241,7 @@
     [self.quitBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"quit-btn"]]];
     [self.fbBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"fb-btn"]]];
     [self.twBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"twitter-btn"]]];
+    self.twitterPicto.size = CGSizeMake(150.f, 40.f);
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
@@ -238,9 +253,7 @@
     if ([node.name isEqualToString:@"play-button"])
     {
         [self.playBtn runAction:[SKAction setTexture:[SKTexture textureWithImageNamed:@"play-btn"]]];
-        GameScene *gameScene = [GameScene sceneWithSize:self.frame.size];
-        gameScene.scaleMode = SKSceneScaleModeAspectFill;
-        [self.view presentScene:gameScene];
+        [self.view presentScene:self.gameScene];
     }
     else if ([node.name isEqualToString:@"quit-button"])
     {
@@ -262,6 +275,11 @@
         SLComposeViewController *composeVC = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
         [composeVC setInitialText:[NSString stringWithFormat:NSLocalizedString(@"SHARE_INITIAL_TEXT", nil), _score]];
         [[[[[UIApplication sharedApplication] delegate] window] rootViewController] presentViewController:composeVC animated:YES completion:nil];
+    }
+    else if ([node.name isEqualToString:@"twitter-picto"])
+    {
+        self.twitterPicto.size = CGSizeMake(150.f, 40.f);
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"twitter://screen_name=fapfapbabor"]];
     }
 }
 

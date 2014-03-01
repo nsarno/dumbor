@@ -28,7 +28,6 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
 @property (nonatomic) SKAction          *wooshSound;
 @property (nonatomic) SKAction          *clangSound;
 @property (nonatomic) NSMutableArray    *scrollingItems;
-@property (nonatomic) ScoreScene        *scoreScene;
 @property (nonatomic) SKShapeNode       *overlayNode;
 
 @end
@@ -56,20 +55,25 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         _pipeOffsetX = 175.f;
         _pipeOffsetY = 113.f;
         _impulse = 16.f;
-        _scrollingPPS = 150.f;
+        _scrollingPPS = 155.f;
         
         self.physicsWorld.contactDelegate = self;
         self.physicsWorld.gravity = CGVectorMake(0, -8);
-        self.physicsBody = [SKPhysicsBody bodyWithEdgeLoopFromPath:CGPathCreateWithRect(CGRectMake(0, 0, self.frame.size.width, self.frame.size.height + 50.f), NULL)];
+        CGPathRef worldPath = CGPathCreateWithRect(CGRectMake(0, 0, self.frame.size.width, self.frame.size.height + 50.f), nil);
+        self.physicsBody = [SKPhysicsBody bodyWithEdgeLoopFromPath:worldPath];
+        CGPathRelease(worldPath);
 
         [self initScrollingBackground];
         [self initPipes];
         
         // Score label
         SKShapeNode *circle = [SKShapeNode node];
-        CGMutablePathRef myPath = CGPathCreateMutable();
-        CGPathAddArc(myPath, NULL, 0, 0, 30, 0, M_PI * 2, YES);
-        circle.path = myPath;
+        
+        CGMutablePathRef scorePath = CGPathCreateMutable();
+        CGPathAddArc(scorePath, NULL, 0, 0, 30, 0, M_PI * 2, YES);
+        circle.path = scorePath;
+        CGPathRelease(scorePath);
+        
         circle.fillColor = [SKColor colorWithRed:0 green:0 blue:0 alpha:0.75];
         circle.position = CGPointMake(size.width * .5f, size.height - 50.f - 45.f);
         circle.zPosition = 1000;
@@ -109,12 +113,6 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         [self.dumbor runAction:self.flapflap withKey:@"flapflap"];
         
         [self addChild:self.dumbor];
-        
-        SKSpriteNode *twitterPicto = [SKSpriteNode spriteNodeWithImageNamed:@"twitter-at"];
-        twitterPicto.position = CGPointMake(size.width / 2.f, size.height * _groundPCT / 2.5f);
-        twitterPicto.zPosition = 1000;
-        twitterPicto.size = CGSizeMake(twitterPicto.size.width / 2.f, twitterPicto.size.height / 2.f);
-        [self addChild:twitterPicto];
         
         // Sounds
         self.blopSound = [SKAction playSoundFileNamed:@"blop.mp3" waitForCompletion:NO];
@@ -174,8 +172,8 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
         [self addChild:ground];
     }
     
-    [self.scrollingItems addObject:@{ @"name" : @"clouds", @"pps" : @25.f}];
-    [self.scrollingItems addObject:@{ @"name" : @"trees", @"pps" : @50.f}];
+    [self.scrollingItems addObject:@{ @"name" : @"clouds", @"pps" : @35.f}];
+    [self.scrollingItems addObject:@{ @"name" : @"trees", @"pps" : @75.f}];
     [self.scrollingItems addObject:@{ @"name" : @"ground", @"pps" : [NSNumber numberWithInt:_scrollingPPS]}];
 }
 
@@ -231,22 +229,6 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     }
 }
 
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    if (_gameOver)
-    {
-        UITouch *touch = [touches anyObject];
-        CGPoint location = [touch locationInNode:self];
-        SKNode *node = [self nodeAtPoint:location];
-
-        if ([node.name isEqualToString:@"retry-button"])
-        {
-            SKScene *gameScene = [GameScene sceneWithSize:self.frame.size];
-            [self.view presentScene:gameScene];
-        }
-    }
-}
-
 -(void)update:(CFTimeInterval)currentTime
 {
     if (_gameOver == NO)
@@ -280,7 +262,9 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     {
         if (self.dumbor.position.y <= 0)
         {
-            [self.view presentScene:self.scoreScene];
+            ScoreScene *scoreScene = [[ScoreScene alloc] initWithSize:self.frame.size score:_score snapshot:nil];
+            scoreScene.scaleMode = SKSceneScaleModeAspectFill;
+            [self.view presentScene:scoreScene];
         }
     }
 }
@@ -396,9 +380,6 @@ static uint32_t const kGroundCategory    = 0x1 << 2;
     [self.dumbor.physicsBody applyImpulse:CGVectorMake(-4, 10)];
     [self.dumbor runAction:[SKAction rotateByAngle:M_PI duration:0.25f]];
     [self.dumbor runAction:self.flapflapflap withKey:@"flapflapflap"];
-    
-    self.scoreScene = [[ScoreScene alloc] initWithSize:self.frame.size score:_score snapshot:nil];
-    self.scoreScene.scaleMode = SKSceneScaleModeAspectFill;
 }
 
 @end
